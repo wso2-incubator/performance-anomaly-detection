@@ -1,0 +1,10 @@
+Pumba is used as the Chaos Engineering tool in the performance-anomaly-detection experiments
+DB hog
+	pumba pause --duration 5m containers mysqlcontainerairline
+CPU hog
+	pumba stress --duration=5m --stress-image alexeiled/stress-ng:latest-ubuntu --pull-image --stressors="--cpu 4 --io 2 --vm 1 --vm-bytes 1G" ta1
+Net hog - type 1 (Delay packets sent from container)
+	pumba netem --duration 5m delay --time 6000 ta1
+Net hog - type 2 (Sending corrupt packets from container)
+	pumba netem --duration 5m corrupt --percent 90 ta1
+
