@@ -1,0 +1,14 @@
+CREATE USER 'root'@'192.168.1.5' IDENTIFIED BY 'test@123';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'192.168.1.5' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+CREATE DATABASE car;
+CREATE TABLE IF NOT EXISTS car.reservations(customerId INTEGER NOT NULL AUTO_INCREMENT, first_name  VARCHAR(300), last_name  VARCHAR(300), car_name  VARCHAR(300), year INTEGER, colour VARCHAR(300), PRIMARY KEY (customerId));
+USE car;
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Duneesha', 'Fernando', 'porsche 911', 2019, 'Blue');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Mary', 'Silva', 'porsche 911', 2020, 'Red');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Kanthi', 'Dias', 'porsche 911', 2019, 'Blue');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Peter', 'Stuart', 'peuegot', 2020, 'Red');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('James', 'DeSilva', 'porsche 911', 2019, 'Red');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Malini', 'Mathew', 'peuegot', 2020, 'Blue');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Kamala', 'Jayasekara', 'porsche 911', 2019, 'Red');
+INSERT INTO car.reservations (first_name, last_name, car_name, year, colour) VALUES ('Rani', 'Perera', 'porsche 911', 2020, 'Red');

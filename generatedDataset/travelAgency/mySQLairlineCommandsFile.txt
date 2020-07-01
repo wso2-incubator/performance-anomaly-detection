@@ -1,0 +1,15 @@
+CREATE USER 'root'@'192.168.1.3' IDENTIFIED BY 'test@123';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'192.168.1.3' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+CREATE DATABASE airline;
+CREATE TABLE IF NOT EXISTS airline.reservations(customerId INTEGER NOT NULL AUTO_INCREMENT, first_name  VARCHAR(300), last_name  VARCHAR(300), airline_name  VARCHAR(300), seat_no INTEGER,class VARCHAR(300), PRIMARY KEY (customerId));
+USE airline;
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Duneesha', 'Fernando', 'Emirates', 102, 'Economy');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Mary', 'Silva', 'Emirates', 103, 'Economy');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Kanthi', 'Dias', 'Etihad', 104, 'Economy');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Peter', 'Stuart', 'Emirates', 105, 'Business');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('James', 'DeSilva', 'Sri Lankan', 106, 'Economy');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Malini', 'Mathew', 'Emirates', 107, 'Business');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Kamala', 'Jayasekara', 'Cathay Pacific', 108, 'Business');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Rani', 'Perera', 'Emirates', 109, 'Economy');
+INSERT INTO airline.reservations (first_name,last_name,airline_name,seat_no,class) VALUES ('Sam', 'Fernando', 'Cathay Pacific', 110, 'Business');

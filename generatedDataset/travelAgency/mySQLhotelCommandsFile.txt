@@ -1,0 +1,15 @@
+CREATE USER 'root'@'192.168.1.4' IDENTIFIED BY 'test@123';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'192.168.1.4' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+CREATE DATABASE hotel;
+CREATE TABLE IF NOT EXISTS hotel.reservations(customerId INTEGER NOT NULL AUTO_INCREMENT, first_name  VARCHAR(300), last_name  VARCHAR(300), hotel_name  VARCHAR(300), address  VARCHAR(300), room_no VARCHAR(30), floor_no INTEGER, PRIMARY KEY (customerId));
+USE hotel;
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Duneesha', 'Fernando', 'Galle Face Hotel', 'Galle Face Hotel, Colombo 3.', '502L',15);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Mary', 'Silva', 'Galle Face Hotel', 'Galle Face Hotel, Colombo 3.', '502L',11);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Kanthi', 'Dias', 'Hilton Hotel', 'Hilton Hotel, Colombo 3.', '502L',11);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Peter', 'Stuart', 'Galle Face Hotel', 'Galle Face Hotel, Colombo 3.', '503L',15);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('James', 'DeSilva', 'Hilton Hotel', 'Hilton Hotel, Colombo 3.', '504L',12);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Malini', 'Mathew', 'Galle Face Hotel', 'Galle Face Hotel, Colombo 3.', '503L',15);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Kamala', 'Jayasekara', 'Galle Face Hotel', 'Galle Face Hotel, Colombo 3.', '502L',11);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Rani', 'Perera', 'Galle Face Hotel', 'Galle Face Hotel, Colombo 3.', '503L',11);
+INSERT INTO hotel.reservations (first_name, last_name, hotel_name, address, room_no, floor_no) VALUES ('Sam', 'Fernando', 'Hilton Hotel', 'Hilton Hotel, Colombo 3.', '502L',11);
