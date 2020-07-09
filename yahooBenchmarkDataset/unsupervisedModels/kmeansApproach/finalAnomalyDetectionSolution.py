@@ -30,7 +30,7 @@ RELAX_EVALUATION_CONDITION = True
 # tags
 # 0 - spikes only, 1 - level shifts only, 2 - dips only, 3 - mixed anomalies, 4 - other types of anomalies (e.g. violation/change of seasonality), 5 - no anomalies
 CATEGORY_LABELS = {0:'spikes_only',1:'level_shifts_only',2:'dips_only',3:'mixed_anomaly',4:'other_anomaly',5:'no_anomaly',6:'all_datasets_combined'}
-COMBINED_ANOMALY_DETECTION_DATASETS = {'Required':True, 'Categories':[3]}
+COMBINED_ANOMALY_DETECTION_DATASETS = {'Required':True, 'Categories':[3,6]}
 switcher = {
         0 : datasetClassifier.Classifier.spikes_only,
         1 : datasetClassifier.Classifier.level_shifts_only,
