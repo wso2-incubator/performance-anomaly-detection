@@ -16,6 +16,6 @@ Repository structure
         * supervisedModels
         * unsupervisedModels
             * kmeansApproach
-                * TO DO - Add separate readme for kmeans approach
+                * Refer the readme in this directory
         * ydata-labeled-time-series-anomalies-v1_0 (Contains the original YWS5 dataset)
 
