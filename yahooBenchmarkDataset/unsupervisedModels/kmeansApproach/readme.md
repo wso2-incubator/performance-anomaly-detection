@@ -15,7 +15,8 @@
      ![cluster space](readmeImages/image_1.png)
  
 * Features were determined to detect each type of anomaly (spikes, dips and level shifts). Therefore, types of 
-anomalies are detected separately and combined before returning the final list of anomaly points. 
+anomalies are detected separately and combined before returning the final list of anomaly points.
+
 ![Anomaly Detection Architecture](readmeImages/image_2.png)
 
 * Description of files (Note: all the output figures are saved in visualizationFigures directory)
