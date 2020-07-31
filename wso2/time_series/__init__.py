@@ -1,25 +1,10 @@
 import pandas as pd
 import numpy as np
-import adtk
-import datetime
-from adtk.visualization import plot
-import matplotlib.pyplot as plt
-from adtk.detector import SeasonalAD
-from adtk.detector import GeneralizedESDTestAD
-from sklearn.linear_model import RidgeClassifier
-from sklearn import metrics
-from sklearn.metrics import *
-from sklearn.model_selection import train_test_split
-from wso2tools.model_templates import *
-from sklearn.manifold import TSNE
-import seaborn as sns
-import matplotlib.pyplot as plt
-from wso2tools.parameter_tuner import *
-from sklearn.metrics import precision_recall_curve
 import scipy
 
 
 def add_base_stat_features(s_train, prefix=""):
+
     window_list = [5, 25, 50]
     for i, w in enumerate(window_list):
         s_train[prefix + "value.w" + str(w) + ".mean"] = s_train["value"].rolling(w).mean().fillna(s_train["value"] if i ==0 else s_train[prefix + "value.w" + str(window_list[i-1]) + ".mean"])
@@ -106,6 +91,74 @@ def remove_sesonality_and_take_ratio(w):
 
 #def fix_na(df, values, na_feild):
 #
+
+
+def create_timeseries_features(s_train):
+    '''
+    1) percentage diff between two adjacent measurements (percentages based on current values)
+2) z score of a values in a moving window
+3) increasing or decreasing (and rate of increment or decrement) (1st, 2nd differentiation)
+
+    :param s_train:
+    :return:
+    '''
+    #max_val = np.percentile(s_train["value"], [99])[0]
+    #s_train["value"] = s_train["value"]/max_val
+    #s_train["value"] = scipy.stats.zscore(s_train["value"])
+
+
+    for i in [1,2,3, 5, 10, 15]:
+        s_train["value.lag"+ str(i)] = s_train["value"].shift(i).fillna(0)
+
+    s_train["first_diff"], s_train["second_diff"]  = calculate_differences(s_train["value"])
+
+    s_train["first_long_diff"] = s_train["value.lag5"] - s_train["value.lag1"]
+    s_train["second_long_diff"] = (s_train["value.lag10"] - s_train["value.lag5"]) -(s_train["value.lag5"] - s_train["value.lag1"])
+
+    window_list = [5, 25, 50]
+    for w in window_list:
+        s_train["value.w."+str(w)+"mean"] = s_train["value"].rolling(w).mean()
+        s_train["value.w"+str(w)+".std"] = s_train["value"].rolling(w).std()
+        s_train["value.w"+str(w)+".kurt"] = s_train["value"].rolling(w).kurt()
+
+
+    #Calculate ratios
+    for i in [2, 3, 5, 10, 15]:
+        s_train["value.lag" + str(i)+"_ratio"] = calculate_ratio(s_train["value.lag" + str(i)], s_train["value.lag1"])
+
+    s_train["first_ratio"], s_train["second_diff_ratio"] = calculate_fs_ratios(s_train["value"])
+
+    s_train["first_long_ratio"] = calculate_ratio(s_train["value.lag5"], s_train["value.lag1"])
+    #s_train["second_long_diff"] = calculate_ratio(s_train["value.lag10"],s_train["value.lag5"]) - (
+    #            s_train["value.lag5"] - s_train["value.lag1"])
+
+    window_list = [5, 25, 50]
+    for w in window_list:
+        s_train["value.w." + str(w) + "mean"] = s_train["value"].rolling(w).mean()
+        s_train["value.w" + str(w) + ".std"] = s_train["value"].rolling(w).std()
+        s_train["value.w" + str(w) + ".kurt"] = s_train["value"].rolling(w).kurt()
+        s_train["value.w" + str(w) + ".zscore"] = s_train["value"].rolling(w).apply(lambda w: scipy.stats.zscore(w)[-1])
+
+    print(s_train[50:].head())
+    print(list(s_train))
+
+    print(s_train["is_anomaly"].value_counts())
+
+    #s_train["first_long_diff"] = s_train["value.lag5"] - s_train["value.lag1"]
+    return s_train
+
+def calculate_differences(values):
+    first_diff = [values[i] - values[i-1] if i> 1 else 0 for i in range(len(values))]
+    second_diff = [first_diff[i] - first_diff[i - 1] if i > 1 else 0 for i in range(len(first_diff))]
+    return first_diff, second_diff
+
+def calculate_fs_ratios(values):
+    first_diff = [values[i]/values[i-1] if i> 1 and values[i-1] > 0 else 1000 for i in range(len(values))]
+    second_diff = [first_diff[i]/first_diff[i - 1] if i > 1 and first_diff[i-1]> 0 else 1000 for i in range(len(first_diff))]
+    return first_diff, second_diff
+
+
+
 def create_timeseries_features_round2(s_train):
     '''
     1) percentage diff between two adjacent measurements (percentages based on current values)
@@ -214,91 +267,6 @@ def create_timeseries_features_round2(s_train):
     s_train = s_train.drop(["org.value"], axis=1)
     return s_train
 
-def residual_without_seasonalitiy_via_acorr(x):
-    n = x.size
-    norm = (x - np.mean(x))
-    result = np.correlate(norm, norm, mode='same')
-    acorr = result[n // 2 + 1:] / (x.var() * np.arange(n - 1, n // 2, -1))
-    lag = np.abs(acorr).argmax() + 1
-    r = acorr[lag - 1]
-    if np.abs(r) > 0.5 and lag > 5:
-        return x[-1] - x[-lag-1]
-    else:
-        return x[-1]
-
-
-
 def calculate_ratio(s1, s2):
     l = len(s1.values)
     return [s1.values[i]/s2.values[i] if s2.values[i] != 0 and not(np.isnan(s2.values[i])) else 1000 for i in range(l)]
-
-def create_timeseries_features(s_train):
-    '''
-    1) percentage diff between two adjacent measurements (percentages based on current values)
-2) z score of a values in a moving window
-3) increasing or decreasing (and rate of increment or decrement) (1st, 2nd differentiation)
-
-    :param s_train:
-    :return:
-    '''
-    #max_val = np.percentile(s_train["value"], [99])[0]
-    #s_train["value"] = s_train["value"]/max_val
-    #s_train["value"] = scipy.stats.zscore(s_train["value"])
-
-
-    for i in [1,2,3, 5, 10, 15]:
-        s_train["value.lag"+ str(i)] = s_train["value"].shift(i).fillna(0)
-
-    s_train["first_diff"], s_train["second_diff"]  = calculate_differences(s_train["value"])
-
-    s_train["first_long_diff"] = s_train["value.lag5"] - s_train["value.lag1"]
-    s_train["second_long_diff"] = (s_train["value.lag10"] - s_train["value.lag5"]) -(s_train["value.lag5"] - s_train["value.lag1"])
-
-    window_list = [5, 25, 50]
-    for w in window_list:
-        s_train["value.w."+str(w)+"mean"] = s_train["value"].rolling(w).mean()
-        s_train["value.w"+str(w)+".std"] = s_train["value"].rolling(w).std()
-        s_train["value.w"+str(w)+".kurt"] = s_train["value"].rolling(w).kurt()
-
-
-    #Calculate ratios
-    for i in [2, 3, 5, 10, 15]:
-        s_train["value.lag" + str(i)+"_ratio"] = calculate_ratio(s_train["value.lag" + str(i)], s_train["value.lag1"])
-
-    s_train["first_ratio"], s_train["second_diff_ratio"] = calculate_fs_ratios(s_train["value"])
-
-    s_train["first_long_ratio"] = calculate_ratio(s_train["value.lag5"], s_train["value.lag1"])
-    #s_train["second_long_diff"] = calculate_ratio(s_train["value.lag10"],s_train["value.lag5"]) - (
-    #            s_train["value.lag5"] - s_train["value.lag1"])
-
-    window_list = [5, 25, 50]
-    for w in window_list:
-        s_train["value.w." + str(w) + "mean"] = s_train["value"].rolling(w).mean()
-        s_train["value.w" + str(w) + ".std"] = s_train["value"].rolling(w).std()
-        s_train["value.w" + str(w) + ".kurt"] = s_train["value"].rolling(w).kurt()
-        s_train["value.w" + str(w) + ".zscore"] = s_train["value"].rolling(w).apply(lambda w: scipy.stats.zscore(w)[-1])
-
-    print(s_train[50:].head())
-    print(list(s_train))
-
-    print(s_train["is_anomaly"].value_counts())
-
-    #s_train["first_long_diff"] = s_train["value.lag5"] - s_train["value.lag1"]
-    return s_train
-
-
-def calculate_differences(values):
-    first_diff = [values[i] - values[i-1] if i> 1 else 0 for i in range(len(values))]
-    second_diff = [first_diff[i] - first_diff[i - 1] if i > 1 else 0 for i in range(len(first_diff))]
-    return first_diff, second_diff
-
-def calculate_fs_ratios(values):
-    first_diff = [values[i]/values[i-1] if i> 1 and values[i-1] > 0 else 1000 for i in range(len(values))]
-    second_diff = [first_diff[i]/first_diff[i - 1] if i > 1 and first_diff[i-1]> 0 else 1000 for i in range(len(first_diff))]
-    return first_diff, second_diff
-
-def normalize_value(df):
-    max_val = np.percentile(df["value"], [90])[0]
-    df["value"] = df["value"] / max_val
-    return df
-

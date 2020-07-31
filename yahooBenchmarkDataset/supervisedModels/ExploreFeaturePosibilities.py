@@ -1,5 +1,5 @@
 
-from wso2tools.time_series_templates import *
+from wso2.time_series import *
 from wso2tools.plot_templates import *
 from statsmodels.tsa.seasonal import seasonal_decompose
 

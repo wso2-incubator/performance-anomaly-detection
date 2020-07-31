@@ -1,27 +1,12 @@
 #https://arundo-adtk.readthedocs-hosted.com/en/stable/
 from adtk.data import validate_series
-import pandas as pd
-import numpy as np
-import adtk
-import datetime
-from adtk.visualization import plot
-import matplotlib.pyplot as plt
-from adtk.detector import SeasonalAD
-from adtk.detector import GeneralizedESDTestAD
-from sklearn.linear_model import RidgeClassifier
-from sklearn import metrics
-from sklearn.metrics import *
-from sklearn.model_selection import train_test_split
-from wso2tools.model_templates import *
-from sklearn.manifold import TSNE
-import seaborn as sns
-import matplotlib.pyplot as plt
-from wso2tools.parameter_tuner import *
-from sklearn.metrics import precision_recall_curve
-import scipy
 from random import shuffle
 from wso2tools.plot_templates import *
-from wso2tools.time_series_templates import *
+from wso2.time_series import *
+from wso2.anomaly_detection import *
+import datetime
+from wso2tools.model_templates import *
+import adtk
 
 
 start = datetime.datetime(2020, 1, 1, 0, 0)
@@ -31,6 +16,7 @@ start_sec = start.timestamp()
 def to_date_time(i):
     return datetime.date.fromtimestamp(start_sec + i*60*60*24)
 
+'''
 def forecast_with_adtk():
     s_train = pd.read_csv("/Users/srinath/playground/Datasets/SystemsData/YahooAnomalyDataset/A1Benchmark/real_66.csv")
     s_train["time"] = [to_date_time(ts) for ts in s_train["timestamp"].values]
@@ -49,22 +35,8 @@ def forecast_with_adtk():
     anomalies = esd_ad.fit_detect(s_train)
     plot(s_train, anomaly=anomalies, anomaly_color="red", anomaly_tag="marker")
     plt.show()
+'''
 
-class Evaluation:
-    def __init__(self, y_test, predict_test):
-        self.acccuracy = metrics.accuracy_score(y_test, predict_test)
-        self.preceission = metrics.precision_score(y_test, predict_test)
-        self.recall = metrics.recall_score(y_test, predict_test)
-        self.auc = metrics.roc_auc_score(y_test, predict_test)
-        self.f1_score = metrics.f1_score(y_test, predict_test)
-        self.cm = confusion_matrix(y_test, predict_test)
-
-    def print(self):
-        print("Accuracy\tPrecision\tRecall\tAUC\tF1")
-        print("%.2f\t%.2f\t%.2f\t%.2f\t%.2f" % (self.acccuracy, self.preceission, self.recall, self.auc, self.f1_score))
-
-        print("Confusion Matrix")
-        print(self.cm)
 
 def evals2df(list_evals):
     results = []
@@ -205,7 +177,6 @@ def run_fold(train_data_sets, test_data_sets):
 def kfold_forecast():
     import numpy as np
     from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import RepeatedStratifiedKFold
 
     X = np.array(
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -347,6 +318,7 @@ def adjust_predictions4nighbourhood(y_test, predict_test, slack=5):
 
     return adjusted_forecasts
 
+'''
 
 def find_best_cutoff_with_neighbourhood_adjustment():
     slack = 20
@@ -415,6 +387,8 @@ def viz_data_2d(X_train, labels):
     #plt.savefig("allseries.png")
     plt.show()
 
+'''
+
 
 
 
@@ -433,6 +407,46 @@ def test_rnn_data_gen():
 
 #test_rnn_data_gen()
 
+def check_cpu_data():
+    filename = '/Users/srinath/code/performance-anomaly-detection/yahooBenchmarkDataset/supervisedModels/anomaly_model_lgbm.sav'
+    clf_loaded = pickle.load(open(filename, 'rb'))
+
+
+    cpu_df = pd.read_csv("/Users/srinath/code/my-python-projects/ChoreoAnalysis/choreo-system/cpu-2020.07.04-2020.7.06.csv")
+    print(list(cpu_df))
+    # ['time', 'container', 'cpu', 'container_short']
+    #container = cpu_df["container"].unique()[0]
+    #cpu_df = cpu_df[cpu_df["container"] == container]
+    #print()
+
+    container_counts = cpu_df.groupby(["container"])["time"].agg(["count"]).reset_index()
+    container_counts = container_counts.sort_values(by=["count"], ascending=False)
+    selected_containers = container_counts.head(10)["container"]
+
+    cpu_df = cpu_df[cpu_df["container"].isin(selected_containers.values)]
+
+    grouped = cpu_df.groupby("container")
+
+    data2plot = []
+    names = []
+    for name, group in grouped:
+        print(name)
+        names.append(name)
+        df = pd.DataFrame({"value":group["cpu"]})
+        X_test = create_timeseries_features_round2(df)
+        #y_predict = np.round(clf_loaded.predict(X_test))
+        y_predict = clf_loaded.predict(X_test)
+        y_predict = np.array([1 if v > 0.95 else 0 for v in y_predict])
+        data2plot.append((df["value"], y_predict))
+        names.append("label")
+        data2plot.append((y_predict, None))
+        #y_predict = clf_loaded.predict(X_test)
+
+    plot_labled_data(data2plot, names, "cpu_anomalies.png")
+
+
+
+
 feature_based_forecast()
 #explore_features_in_ts()
 
@@ -441,6 +455,8 @@ feature_based_forecast()
 #kfold_forecast()
 
 #print(0.99**100)
+
+#check_cpu_data()
 
 
 

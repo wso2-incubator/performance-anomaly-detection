@@ -18,6 +18,24 @@ def plot_waves(data_list, names, file_name, labels=None):
     else:
         plt.savefig(file_name)
 
+def plot_labled_data(data_list, names, file_name):
+    graph_count = len(data_list)
+    fig = plt.figure(figsize=(9, graph_count))
+
+    for i, (d, label) in enumerate(data_list):
+        ax = plt.subplot(graph_count, 1, i+1)
+        ax.set_title(names[i])
+        plt.plot(d)
+        if label is not None:
+            label = label*np.mean(d)
+            plt.plot(label)
+
+    if file_name is None:
+        plt.show()
+    else:
+        plt.savefig(file_name)
+
+
 
 def plot_xy(data_list, file_name):
     graph_count = len(data_list)

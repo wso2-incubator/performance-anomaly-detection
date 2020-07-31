@@ -65,6 +65,27 @@ class Data4Model:
         X_test.to_csv("dm.test.csv")
 
 
+
+
+
+
+
+class Evaluation:
+    def __init__(self, y_test, predict_test):
+        self.acccuracy = metrics.accuracy_score(y_test, predict_test)
+        self.preceission = metrics.precision_score(y_test, predict_test)
+        self.recall = metrics.recall_score(y_test, predict_test)
+        self.auc = metrics.roc_auc_score(y_test, predict_test)
+        self.f1_score = metrics.f1_score(y_test, predict_test)
+        self.cm = confusion_matrix(y_test, predict_test)
+
+    def print(self):
+        print("Accuracy\tPrecision\tRecall\tAUC\tF1")
+        print("%.2f\t%.2f\t%.2f\t%.2f\t%.2f" % (self.acccuracy, self.preceission, self.recall, self.auc, self.f1_score))
+
+        print("Confusion Matrix")
+        print(self.cm)
+
 def run_xgboost(X_train, X_test, y_train, y_test, xgb_params=None, use_cv=False, num_rounds=5):
     if xgb_params is None:
         xgb_params = {'objective': 'binary:logistic', 'nthread': 4, 'eval_metric': ['auc'],
@@ -937,6 +958,9 @@ def test_id():
 '''
 for parameters see https://lightgbm.readthedocs.io/en/latest/Parameters.html
 '''
+
+import pickle
+
 def run_lgbm(X_train, X_test, y_train, y_test, params=None):
     d_train = lgb.Dataset(X_train, label=y_train)
     d_test = lgb.Dataset(X_test, label=y_test)
@@ -962,11 +986,21 @@ def run_lgbm(X_train, X_test, y_train, y_test, params=None):
     print(importance_df.sort_values(by=['Value'], ascending=False))
     plot_precision_recall(y_test, predict_test)
 
+
+    filename = 'anomaly_model_lgbm.sav'
+    pickle.dump(clf, open(filename, 'wb'))
+
+    clf_loaded = pickle.load(open(filename, 'rb'))
+    predict_test_loaded = clf_loaded.predict(X_test)
+    if np.allclose(predict_test_loaded, predict_test):
+        print("loaded model is same")
+    else:
+        print("loaded model is not the same")
+
     X_test = X_test.copy()
     X_test["actual"] = y_test
     X_test["predicted"] = predict_test
     X_test.to_csv("results_prob.csv")
-
 
     return predict_train, predict_test
 
