@@ -12,7 +12,14 @@ from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
 import pickle
 
+
 def plot_precision_recall(y_test, predict_test):
+    '''
+    Plot the precision recall tradeoff graph for give data to help find best cutoff
+    :param y_test:
+    :param predict_test:
+    :return:
+    '''
     precision, recall, thresholds = precision_recall_curve(y_test, predict_test)
 
     size = np.min([len(precision), len(recall), len(thresholds)])
@@ -22,17 +29,10 @@ def plot_precision_recall(y_test, predict_test):
     pr_tradeoff["thresholds"] = thresholds[:size]
     pr_tradeoff.to_csv("pr_tradeoff.csv")
 
-    pr_tradeoff = pr_tradeoff[pr_tradeoff["precision"] > 0.75]
-    pr_tradeoff = pr_tradeoff.sort_values(by=["precision"])
-    top_record = pr_tradeoff.head(1)
-    print("recall at 0.75")
-    print(top_record)
-
     plt.plot(recall,precision, label="Precision")
     plt.ylabel("precision")
     plt.xlabel("recall")
     ax = plt.gca()
-    #secaxy = ax.plot(recall[:len(thresholds)], thresholds, label="threshold")
     plt.savefig("precision_recall.png")
 
 class Evaluation:
@@ -51,45 +51,41 @@ class Evaluation:
         print("Confusion Matrix")
         print(self.cm)
 
-def normalize_value(df):
+
+def normalize_df_withp90(df):
     max_val = np.percentile(df["value"], [90])[0]
     df["value"] = df["value"] / max_val
     return df
 
 
-
-def residual_without_seasonalitiy_via_acorr(x):
-    n = x.size
-    norm = (x - np.mean(x))
-    result = np.correlate(norm, norm, mode='same')
-    acorr = result[n // 2 + 1:] / (x.var() * np.arange(n - 1, n // 2, -1))
-    lag = np.abs(acorr).argmax() + 1
-    r = acorr[lag - 1]
-    if np.abs(r) > 0.5 and lag > 5:
-        return x[-1] - x[-lag-1]
-    else:
-        return x[-1]
-
-
-
-
-
-
-
 def load_featurize_univeriate_data(file_list, value_feature_name, test_fraction=0.3):
+    '''
+    Load files in file list, concat them, and generate features
+    :param file_list:
+    :param value_feature_name: univaraite feild name
+    :param test_fraction: what fraction of data to be used at the test set
+    :return:
+    '''
     data_sets = [pd.read_csv(f) for f in file_list]
-    normalized_datasets = [normalize_value(df) for df in data_sets]
+    normalized_datasets = [normalize_df_withp90(df) for df in data_sets]
     transformed_datasets = [create_timeseries_features_round2(df) for df in normalized_datasets]
     data_set = pd.concat(transformed_datasets)
 
     data_set = data_set.fillna(0)
-    X = pd.DataFrame({"value":data_set[value_feature_name]})
+    X = pd.DataFrame({"value": data_set[value_feature_name]})
     y = data_set.pop("is_anomaly")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_fraction, random_state=123,
                                                         shuffle=False)
     return X_train, X_test, y_train, y_test
 
+
 def under_sample_with_SMOTE(X, y):
+    '''
+    Undersample the dat with SMOTE algorithm
+    :param X:
+    :param y: labels
+    :return:
+    '''
     counter = collections.Counter(y)
     print(counter)
     # define pipeline
@@ -107,9 +103,6 @@ def under_sample_with_SMOTE(X, y):
 
 def build_univairiate_model(file_list, value_feature_name, test_fraction=0.3):
     X_train, X_test, y_train, y_test = load_featurize_univeriate_data(file_list, value_feature_name, test_fraction=test_fraction)
-    #
-    print("Before Shuffle", X_train.shape)
-    print(y_train.value_counts())
 
     X_train, y_train = under_sample_with_SMOTE(X_train, y_train)
 
@@ -119,6 +112,14 @@ def build_univairiate_model(file_list, value_feature_name, test_fraction=0.3):
 
 
 def adjust_predictions4nighbourhood(y_test, predict_test, slack=5):
+    '''
+    It is OK to forecast close to the anomaly as begining of the anomaly is often not clear. This code check the nebhourhood
+    and update the prediction. This help us get a better accuracy number.
+    :param y_test:
+    :param predict_test:
+    :param slack: window to look at
+    :return:
+    '''
     y_test = y_test.values
     length = len(y_test)
     adjusted_forecasts = np.copy(predict_test)
@@ -133,11 +134,13 @@ def adjust_predictions4nighbourhood(y_test, predict_test, slack=5):
             if np.sum(predict_test[i-slack:i+slack]) > 0:
                 #print(predict_test[i - slack:i + slack], "=", np.sum(predict_test[i - slack:i + slack]))
                 adjusted_forecasts[i] = 1 #there is anomaly within 20 in predicted, so OK
-
-
     return adjusted_forecasts
 
+
 class UnivariateAnomalyDetector:
+    '''
+    This is the main detector, can save and load to file system
+    '''
     def __init__(self, filename=None):
         if filename is not None:
             self.clf = pickle.load(open(filename, 'rb'))

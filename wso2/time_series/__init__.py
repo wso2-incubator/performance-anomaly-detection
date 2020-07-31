@@ -4,7 +4,6 @@ import scipy
 
 
 def add_base_stat_features(s_train, prefix=""):
-
     window_list = [5, 25, 50]
     for i, w in enumerate(window_list):
         s_train[prefix + "value.w" + str(w) + ".mean"] = s_train["value"].rolling(w).mean().fillna(s_train["value"] if i ==0 else s_train[prefix + "value.w" + str(window_list[i-1]) + ".mean"])
@@ -16,12 +15,18 @@ def add_base_stat_features(s_train, prefix=""):
             .fillna(0 if i == 0 else s_train[prefix + "value.w" + str(window_list[i - 1]) + ".entropy"])
     return s_train
 
+
 def calculate_entropy(w):
     entropy = scipy.stats.entropy(w)
     return entropy if np.isfinite(entropy) else 10000
 
-#"value.w50.std
 def mark_peaks(s_train, feild):
+    '''
+    Detect peaks in the give feild and add a new feature to mark thems
+    :param s_train:
+    :param feild:
+    :return:
+    '''
     s_train[feild + ".smooth"] = scipy.ndimage.gaussian_filter1d(s_train[feild].values, 10)
 
     peaks, _ = scipy.signal.find_peaks(s_train[feild + ".smooth"].values)
@@ -44,17 +49,13 @@ def mark_peaks(s_train, feild):
         else:
             raise Exception("this should never happen i=", i, "last_peak_index", last_peak_index, "next_peak_index", next_peak_index)
 
-    #print(peaks)
-    #print(peak_indexs)
-
-    #for p in peaks:
-    #    peak_indexs[p] = 1
     s_train[feild+".peaks"] = peak_indexs
     return s_train
 
 
 def get_seasonal_component(w):
     return get_seasonal_window(w)[-1]
+
 
 def get_seasonal_window(w):
     frequencies = np.fft.fft(w)
@@ -72,9 +73,21 @@ def get_seasonal_window(w):
 
     period_freq = np.zeros(n, dtype=complex)
     period_freq[index2keep] = frequencies[index2keep]
-    #period_freq_size = np.sqrt(period_freq.real * period_freq.real + period_freq.imag * period_freq.imag)
     recovered_signal = np.fft.ifft(period_freq)
     return recovered_signal
+
+
+def residual_without_seasonalitiy_via_acorr(x):
+    n = x.size
+    norm = (x - np.mean(x))
+    result = np.correlate(norm, norm, mode='same')
+    acorr = result[n // 2 + 1:] / (x.var() * np.arange(n - 1, n // 2, -1))
+    lag = np.abs(acorr).argmax() + 1
+    r = acorr[lag - 1]
+    if np.abs(r) > 0.5 and lag > 5:
+        return x[-1] - x[-lag-1]
+    else:
+        return x[-1]
 
 
 def calculate_wasserstein_distance(w):
@@ -89,23 +102,20 @@ def remove_sesonality_and_take_ratio(w):
 
     return seasonal_componet[-1]/to_devide if to_devide != 0 else 10000
 
-#def fix_na(df, values, na_feild):
-#
 
 
 def create_timeseries_features(s_train):
     '''
     1) percentage diff between two adjacent measurements (percentages based on current values)
-2) z score of a values in a moving window
-3) increasing or decreasing (and rate of increment or decrement) (1st, 2nd differentiation)
+    2) z score of a values in a moving window
+    3) increasing or decreasing (and rate of increment or decrement) (1st, 2nd differentiation)
 
     :param s_train:
     :return:
     '''
-    #max_val = np.percentile(s_train["value"], [99])[0]
+    #max_val = np.percentile(s_train["value"], z[99])[0]
     #s_train["value"] = s_train["value"]/max_val
     #s_train["value"] = scipy.stats.zscore(s_train["value"])
-
 
     for i in [1,2,3, 5, 10, 15]:
         s_train["value.lag"+ str(i)] = s_train["value"].shift(i).fillna(0)

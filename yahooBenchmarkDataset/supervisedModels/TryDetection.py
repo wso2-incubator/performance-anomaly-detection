@@ -109,7 +109,7 @@ def copy_org(df):
 def load_given_datasets(feature_fn=create_timeseries_features, file_list=None):
     dir = "/Users/srinath/playground/Datasets/SystemsData/YahooAnomalyDataset/A1Benchmark/"
     data_sets = [pd.read_csv(dir+"real_" +str(i)+".csv") for i in file_list]
-    normalized_datasets = [normalize_value(copy_org(df)) for df in data_sets]
+    normalized_datasets = [normalize_df_withp90(copy_org(df)) for df in data_sets]
     transformed_datasets = [feature_fn(df) for df in normalized_datasets]
     data_set = pd.concat(transformed_datasets)
 
@@ -131,7 +131,7 @@ def load_yahoo_dataset(feature_fn=create_timeseries_features, file_list=None):
         file_list = [ 11, 19, 15, 9, 45, 56, 59, 64, 41, 16, 54, 39, 2, 44, 23, 18, 47, 31, 24, 49, 26, 3, 0, 60, 52, 40, 43, 61, 12, 17, 33, 20, 1, 38, 7, 50, 30, 32, 21, 48, 5, 35, 4, 14, 29, 22, 55, 8, 62, 6, 58, 36, 53, 34, 10, 63, 28, 51, 25, 42, 57, 46, 13, 37, 27]
 
     data_sets = [pd.read_csv(dir+"real_" +str(i+1)+".csv") for i in file_list]
-    normalized_datasets = [normalize_value(df) for df in data_sets]
+    normalized_datasets = [normalize_df_withp90(df) for df in data_sets]
     transformed_datasets = [feature_fn(df) for df in normalized_datasets]
     data_set = pd.concat(transformed_datasets)
 
