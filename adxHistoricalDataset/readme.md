@@ -48,20 +48,20 @@
 
     * Relaxed evaluation conditions
         * Accuracy - 0.99
-        * Precision - 0.08   
-        * Recall - 0.08      
-        * AUC - 0.54        
-        * F1 - 0.08
+        * Precision - 0.13   
+        * Recall - 0.20      
+        * AUC - 0.60        
+        * F1 - 0.16
         * Confusion Matrix - 
-        [[10261    61]
-        [   59     5]]
+        [[10235    87]
+        [   51    13]]
                              
     * Non-relaxed evaluation conditions
-        * Accuracy - 0.99
-        * Precision - 0.05
-        * Recall - 0.06      
-        * AUC - 0.53       
-        * F1 - 0.06
+        * Accuracy - 0.98
+        * Precision - 0.09
+        * Recall - 0.17      
+        * AUC - 0.58      
+        * F1 - 0.12
         * Confusion Matrix - 
-        [[10245    77]
-        [   60     4]]
+        [[10213   109]
+        [   53    11]]

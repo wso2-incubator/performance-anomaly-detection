@@ -245,10 +245,14 @@ def load_yahoo_dataset():
     transformed_datasets = [create_timeseries_features(df) for df in normalized_datasets]
     data_set = pd.concat(transformed_datasets)
     data_set = data_set.fillna(0)
-    X = pd.DataFrame({"value": data_set[value_feature_name_training]})
-    y = data_set.pop("is_anomaly")
+    # edit start
+    X = data_set.drop(["timestamp"], axis=1)
+    # X = pd.DataFrame({"value": data_set[value_feature_name_training]})
+    # edit end
+    y = X.pop("is_anomaly")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_fraction, random_state=123,
                                                         shuffle=False)
+    print(X_train.columns.values)
     return X_train, X_test, y_train, y_test
 
 if __name__ == '__main__':

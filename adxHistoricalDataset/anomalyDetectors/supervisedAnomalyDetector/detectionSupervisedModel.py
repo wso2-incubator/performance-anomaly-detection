@@ -224,23 +224,23 @@ def load_adx_historical_dataset():
     # Rename columns of data_frames in data_sets
     processed_dataset = [process_datasets(data_set) for data_set in data_sets]
     # Before normalizing, if a dataset has low throughput throughout, remove it
-    print(len(processed_dataset))
     high_throughput_datasets = []
     for df in processed_dataset:
         if not ((df['value'] < 100).all()):
             high_throughput_datasets.append(df)
-    print(len(high_throughput_datasets))
     normalized_datasets = [normalize_dataset(df) for df in high_throughput_datasets]
     transformed_datasets = [create_timeseries_features(df) for df in normalized_datasets]
     data_set = pd.concat(transformed_datasets)
     data_set = data_set.fillna(0)
-    X_train = pd.DataFrame({"value": data_set[value_feature_name_testing]})
-    y_train = data_set.pop("is_anomaly")
+    X_train = data_set.drop(["timestamp"], axis=1)
+    # X_train = pd.DataFrame({"value": data_set[value_feature_name_testing]})
+    y_train = X_train.pop("is_anomaly")
     return X_train, y_train
 
 if __name__ == '__main__':
     # Load the testing dataset
     X_train_adx, y_train_adx = load_adx_historical_dataset()
+    print(X_train_adx.columns.values)
     # Use the saved model (pre-trained using yws5 dataset) for testing ADX historical data.
     destination_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..',
                                                          'anomalyDetectors', 'anomalyDetectorModels'))
