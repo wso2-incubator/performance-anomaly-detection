@@ -8,7 +8,7 @@ In The 25th ACM SIGKDDConference on Knowledge Discovery and Data Mining (KDD ’
 August4–8, 2019, Anchorage, AK, USA.ACM, New York, NY, USA, 10 pages. https://doi.org/10.1145/3292500.3330871
 """
 import pickle
-from os.path import join, isdir, isfile
+from os.path import join
 from collections import defaultdict
 import json
 import tensorflow as tf
@@ -40,7 +40,7 @@ def lstm_function(input):
     # Add an LSTM layer
     print("input is of shape " + str(input.shape) + " and type " + str(type(input)))
     # print(input)
-    lstm = tf.keras.layers.LSTM(128)
+    lstm = tf.keras.layers.LSTM(256)
     lstm_output = lstm(input)
     return lstm_output
 
@@ -275,6 +275,21 @@ def adjust_predictions_for_neighbourhood(y_test, predict_test, slack=5):
                 adjusted_forecasts[i] = 1  # there is anomaly within 20 in predicted, so OK
     return adjusted_forecasts
 
+def create_rnn_univariate_data_with_targetdata(dataset, target_data, start_index, end_index, history_steps, target_steps):
+    data = []
+    labels = []
+
+    start_index = start_index + history_steps
+    if end_index is None:
+        end_index = len(dataset) - target_steps
+
+    for i in range(start_index, end_index):
+        indices = range(i - history_steps, i)
+        # Reshape data from (history_size,) to (history_size, 1)
+        data.append(np.reshape(dataset[indices], (history_steps, 1)))
+        labels.append(target_data[i + target_steps -2])
+    return np.array(data), np.array(labels)
+
 if __name__ == '__main__':
     # Test for GPU
     is_gpu = tf.test.is_gpu_available()
@@ -293,7 +308,11 @@ if __name__ == '__main__':
     # Perform scaling if required
     y = dataset[ANOMALY_LABEL_COLUMN_NAME].values  # y contains anomaly labels
     x = dataset.drop(columns=[ANOMALY_LABEL_COLUMN_NAME, INDEX_COLUMN]).values
-    x_reshaped = tf.constant(x, 'float32', shape=[92019, 1, 1])
+    start_index = 0
+    target_steps = 1
+    end_index = len(y) + 1
+    history_steps = 150
+    x_reshaped, y = create_rnn_univariate_data_with_targetdata(x, y, start_index, end_index, history_steps, target_steps)
     if GRU_or_LSTM == "LSTM":
         output_for_x_reshaped = lstm_function(x_reshaped)
         array_for_x_reshaped = np.array(output_for_x_reshaped)
