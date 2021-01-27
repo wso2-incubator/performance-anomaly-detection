@@ -188,3 +188,19 @@ if __name__ == '__main__':
 # Confusion Matrix
 # [[1023541    8322]
 #  [  28447    2305]]
+
+# Normalised scenario
+# Normalisation procedure - normalisation across columns. Values of each column were divided by the 90th percentile of the values in that column.
+# Accuracy	Precision	Recall	AUC	F1
+# 0.97	0.00	0.00	0.50	0.00
+# Confusion Matrix
+# [[1031863       0]
+#  [  30752       0]]
+
+# Normalisation procedure - normalisation across columns. (value in each column - mean of values in the column)/std of values in the column
+# Original evaluation results
+# Accuracy	Precision	Recall	AUC	F1
+# 0.97	0.50	0.17	0.58	0.25
+# Confusion Matrix
+# [[1026509    5354]
+#  [  25479    5273]]

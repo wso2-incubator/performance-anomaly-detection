@@ -6,7 +6,7 @@ from os.path import isfile, join
 import numpy as np
 import pandas as pd
 
-PERCENTILE_VALUE = 99
+PERCENTILE_VALUE = 90
 # Change False to True as necessary
 CONVERT_TRAIN_DATA_TO_CSV = False
 PREPARE_SMD_NORMAL = True
@@ -38,11 +38,15 @@ if PREPARE_SMD_NORMAL:
     for csv_file in csv_file_list:
         df = pd.read_csv(output_dir_path+csv_file)
         for column_heading in df.columns.values:
-            max_val = np.percentile(df[column_heading], [PERCENTILE_VALUE])[0]
-            df[column_heading] = (df[column_heading] / max_val).fillna(0)
+            # max_val = np.percentile(df[column_heading], [PERCENTILE_VALUE])[0]
+            # df[column_heading] = (df[column_heading] / max_val).fillna(0)
+            mean_val = df[column_heading].mean()
+            std_val = df[column_heading].std()
+            df[column_heading] = (df[column_heading] - mean_val)/std_val
         data_sets.append(df)
-        print(df.shape)
-    data_set = pd.concat(data_sets).reset_index(drop=True)
+        # print(df.shape)
+    data_set = pd.concat(data_sets).reset_index(drop=True).fillna(0)
+    # print(data_set)
     data_set.to_csv('../smd/SMD_Dataset_Normal.csv', index=True) # to drop index while writing to csv, set index to False
 
 machine_file_list = [f for f in listdir(output_dir_path) if isfile(join(output_dir_path, f))]

@@ -6,7 +6,7 @@ import numpy as np
 
 import pandas as pd
 
-PERCENTILE_VALUE = 99
+PERCENTILE_VALUE = 90
 # Change False to True as necessary
 CONVERT_TEST_DATA_TO_CSV = False
 CONVERT_TEST_LABELS_TO_CSV = False
@@ -83,8 +83,12 @@ if NORMALISE_TEST_DATA:
         df = pd.read_csv(output_dir_path+machine_file)
         print(df)
         for column_heading in df.columns.values:
-            max_val = np.percentile(df[column_heading], [PERCENTILE_VALUE])[0]
-            df[column_heading] = (df[column_heading] / max_val).fillna(0)
+            # max_val = np.percentile(df[column_heading], [PERCENTILE_VALUE])[0]
+            # df[column_heading] = (df[column_heading] / max_val).fillna(0)
+            mean_val = df[column_heading].mean()
+            std_val = df[column_heading].std()
+            df[column_heading] = (df[column_heading] - mean_val) / std_val
+        df = df.fillna(0)
         print(df)
         print("--------------------")
         df.to_csv(normalised_test_dir_path+machine_file, index=True)  # to drop index while writing to csv, set index to False
