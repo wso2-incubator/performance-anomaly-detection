@@ -9,8 +9,8 @@ import pandas as pd
 PERCENTILE_VALUE = 99
 # Change False to True as necessary
 CONVERT_TRAIN_DATA_TO_CSV = False
-PREPARE_SMD_NORMAL = False
-MERGE_TRAIN_DATA = True
+PREPARE_SMD_NORMAL = True
+MERGE_TRAIN_DATA = False
 
 train_dir_path = 'train/'
 output_dir_path = '../smd/train/'
@@ -43,7 +43,7 @@ if PREPARE_SMD_NORMAL:
         data_sets.append(df)
         print(df.shape)
     data_set = pd.concat(data_sets).reset_index(drop=True)
-    data_set.to_csv('../SMD_Dataset_Normal.csv', index=True) # to drop index while writing to csv, set index to False
+    data_set.to_csv('../smd/SMD_Dataset_Normal.csv', index=True) # to drop index while writing to csv, set index to False
 
 machine_file_list = [f for f in listdir(output_dir_path) if isfile(join(output_dir_path, f))]
 if MERGE_TRAIN_DATA:
@@ -52,4 +52,4 @@ if MERGE_TRAIN_DATA:
         df = pd.read_csv(output_dir_path+machine_file)
         data_sets.append(df)
     data_set = pd.concat(data_sets).reset_index(drop=True)
-    data_set.to_csv('../smd/SMD_Dataset_Normal.csv', index=True)  # to drop index while writing to csv, set index to False
+    data_set.to_csv('../smd/SMD_Dataset_Normal_non_normalised.csv', index=True)  # to drop index while writing to csv, set index to False

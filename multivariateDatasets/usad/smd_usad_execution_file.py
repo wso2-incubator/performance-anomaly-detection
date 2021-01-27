@@ -1,10 +1,10 @@
-import pandas as pd
-from sklearn import preprocessing
 import numpy as np
-import torch.utils.data as data_utils
+import pandas as pd
 import torch
-from usad import *
+import torch.utils.data as data_utils
 from sklearn import metrics
+from usad import *
+
 
 class Evaluation:
     def __init__(self, y_test, predict_test):
@@ -62,6 +62,7 @@ if __name__ == '__main__':
 
     #Read data
     attack = pd.read_csv("../smd/SMD_Dataset_Attack.csv")#, sep=";")#, nrows=1000)
+    print(attack.columns.values)
     y = attack.pop("Normal/Attack")
     attack = attack.drop(['Unnamed: 0'], axis=1)
     print(attack.shape)
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     print(windows_attack.shape)
     BATCH_SIZE = 7919
     N_EPOCHS = 250 # originally 100
-    hidden_size = 1 # originally 10
+    hidden_size = 10 # originally 10
 
     w_size=windows_normal.shape[1]*windows_normal.shape[2]
     print(w_size)
@@ -180,9 +181,10 @@ if __name__ == '__main__':
     # adj_evaluator = Evaluation(y_test, adjusted_predictions)
     # adj_evaluator.print()
 
+# Non-normalized scenario
 # Original evaluation results
 # Accuracy	Precision	Recall	AUC	F1
-# 0.97	0.26	0.09	0.54	0.14
+# 0.97	0.22	0.07	0.53	0.11
 # Confusion Matrix
-# [[1024036    7827]
-#  [  27952    2800]]
+# [[1023541    8322]
+#  [  28447    2305]]
